@@ -542,7 +542,9 @@ def CreateTimeSeriesSample(samples: List[sample.Sample]) -> List[sample.Sample]:
   for s in samples:
     ns_op = s.metric
     result = AsbenchResult(s)
-    sample_results.setdefault(ns_op, []).append(result)
+    if ns_op not in sample_results:
+      sample_results[ns_op] = []
+    sample_results[ns_op].append(result)
     if _AEROSPIKE_OPS_TIME_SERIES.value:
       ops_by_timestamp[result.timestamp] = result.total_tps
 

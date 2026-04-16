@@ -111,7 +111,9 @@ class KubernetesEventPoller:
     )
     failure_events_by_reason: dict[str | None, list[KubernetesEvent]] = {}
     for event in failure_events_list:
-      failure_events_by_reason.setdefault(event.reason, []).append(event)
+      if event.reason not in failure_events_by_reason:
+        failure_events_by_reason[event.reason] = []
+      failure_events_by_reason[event.reason].append(event)
     for reason, failure_events in failure_events_by_reason.items():
       logging.info(
           'There were %d failure events for reason %s. Printing the last 20.',
