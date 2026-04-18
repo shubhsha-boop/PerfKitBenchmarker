@@ -499,7 +499,11 @@ class PrettyPrintStreamPublisher(SamplePublisher):
 
     for sample in samples:
       for k, v in sample['metadata'].items():
-        if len(unique_values.setdefault(k, set())) < 2 and v.__hash__:
+        # Perf optimization: Avoid using setdefault in a hot loop as it
+        # evaluates the default argument (set()) on every iteration.
+        if k not in unique_values:
+          unique_values[k] = set()
+        if len(unique_values[k]) < 2 and getattr(v, '__hash__', None):
           unique_values[k].add(v)
 
     # Find keys which are not present in all samples
