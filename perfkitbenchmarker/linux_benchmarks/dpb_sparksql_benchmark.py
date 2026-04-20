@@ -475,7 +475,13 @@ def _GetGlobalSamples(
   passing_queries = {}
   for s in query_samples:
     query_id = s.metadata['query']
-    passing_queries.setdefault(s.metadata.get('stream', 0), set()).add(query_id)
+    stream_id = s.metadata.get('stream', 0)
+    # Optimization: avoid instantiating set() on every loop iteration
+    sq = passing_queries.get(stream_id)
+    if sq is None:
+      sq = set()
+      passing_queries[stream_id] = sq
+    sq.add(query_id)
     run_times[query_id] = s.value
 
   samples = []
