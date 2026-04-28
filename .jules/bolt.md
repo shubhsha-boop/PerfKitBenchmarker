@@ -1,0 +1,3 @@
+## 2024-05-24 - setdefault inside loop anti-pattern
+**Learning:** Using `dict.setdefault(k, set())` inside a loop in Python allocates memory for a new empty set on every single iteration, even if the key already exists in the dict. In codepaths that process many items, this constant creation and immediate discarding of set objects creates unnecessary garbage collection overhead and slows down execution.
+**Action:** Replace `dict.setdefault(key, empty_collection_type())` with `collections.defaultdict(empty_collection_type)` when processing items inside tight loops to lazy-initialize default values and avoid redundant memory allocations.
