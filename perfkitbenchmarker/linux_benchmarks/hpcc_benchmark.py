@@ -69,6 +69,30 @@ MACHINEFILE = 'machinefile'
 BLOCK_SIZE = 192
 STREAM_METRICS = ['Copy', 'Scale', 'Add', 'Triad']
 
+_INTEL_LINPACK_OUTPUT_LINE_RE = re.compile(
+    r'\s+'.join([
+        r'WR\S+',
+        r'\d+',
+        r'\d+',
+        r'\d+',
+        r'\d+',
+        r'\d+\.\d+',
+        r'([\d\.e\+\-]+)',
+    ])
+)
+
+_INTEL_LINPACK_STDOUT_LINE_RE = re.compile(
+    r"""Column=\s*(?P<column>\d+)
+        \s*Fraction=\s*(?P<fraction>[\d\.]+)
+        \s*Kernel=\s*(?P<kernel>[\d\.]+)
+        \s*Mflops=\s*(?P<mflops>[\d\.]+)""",
+    re.X,
+)
+
+_INTEL_ENV_RE = re.compile(
+    r'(.*MPI startup.*?)?\s*(?P<key>I_MPI[A-Z_\d]+)=(?P<value>.*)\s*'
+)
+
 MKL_TGZ = 'l_mkl_2018.2.199.tgz'
 BENCHMARK_DATA = {
     # Intel MKL package downloaded from:
@@ -668,20 +692,9 @@ def _ParseIntelLinpackOutputFile(file_text: str) -> float:
   Args:
     file_text: The hpcc output file contents.
   """
-  line_re = re.compile(
-      r'\s+'.join([
-          r'WR\S+',
-          r'\d+',
-          r'\d+',
-          r'\d+',
-          r'\d+',
-          r'\d+\.\d+',
-          r'([\d\.e\+\-]+)',
-      ])
-  )
   gflops = None
   for line in file_text.splitlines():
-    match = line_re.match(line)
+    match = _INTEL_LINPACK_OUTPUT_LINE_RE.match(line)
     if match:
       gflops = float(match[1])
   return gflops / 1000
@@ -712,23 +725,17 @@ def _ParseIntelLinpackStdout(stdout: str) -> Tuple[float, Dict[str, float]]:
   Raises:
     ValueError: If no metrics could be found.
   """
-  line_re = re.compile(
-      r"""Column=\s*(?P<column>\d+)
-        \s*Fraction=\s*(?P<fraction>[\d\.]+)
-        \s*Kernel=\s*(?P<kernel>[\d\.]+)
-        \s*Mflops=\s*(?P<mflops>[\d\.]+)""",
-      re.X,
-  )
   fractions = []
   kernel_tflops = []
   tflops = []
-  line_matches = line_re.finditer(stdout)
+  line_matches = _INTEL_LINPACK_STDOUT_LINE_RE.finditer(stdout)
   try:
     next(line_matches)  # first outputted values are artificially low
-  except StopIteration:
+  except StopIteration as exc:
     raise ValueError(
-        f'Could not find a line in stdout to match {line_re.pattern}: {stdout}'
-    )
+        f'Could not find a line in stdout to match '
+        f'{_INTEL_LINPACK_STDOUT_LINE_RE.pattern}: {stdout}'
+    ) from exc
   for line_match in line_matches:
     fractions.append(float(line_match['fraction']))
     kernel_tflops.append(float(line_match['kernel']) / 1e6)
@@ -736,10 +743,9 @@ def _ParseIntelLinpackStdout(stdout: str) -> Tuple[float, Dict[str, float]]:
   if not tflops:
     raise ValueError('No metrics found in stdout')
   # Grab all the I_MPI* environment variables in debug output to put in metadata
-  intel_env_re = re.compile(
-      r'(.*MPI startup.*?)?\s*' r'(?P<key>I_MPI[A-Z_\d]+)=(?P<value>.*)\s*'
-  )
-  env_vars = {row['key']: row['value'] for row in intel_env_re.finditer(stdout)}
+  env_vars = {
+      row['key']: row['value'] for row in _INTEL_ENV_RE.finditer(stdout)
+  }
   env_vars.pop('I_MPI_HYDRA_UUID', None)
   metadata = {
       'fractions': ','.join([str(x) for x in fractions]),
