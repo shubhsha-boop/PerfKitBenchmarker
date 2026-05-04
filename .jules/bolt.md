@@ -1,0 +1,3 @@
+## 2024-05-24 - Avoid default object instantiation in hot loops
+**Learning:** Using `dict.setdefault(key, default_obj)` inside a hot loop is an anti-pattern when `default_obj` requires instantiation (like `set()`), because the argument is evaluated *before* the function call on every iteration, regardless of whether the key exists. This causes unnecessary memory allocations and GC overhead.
+**Action:** Replace `dict.setdefault` with `collections.defaultdict` in performance-critical code paths to ensure default objects are only instantiated when absolutely necessary (i.e., when a key is actually missing).
