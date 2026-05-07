@@ -537,12 +537,15 @@ def CreateTimeSeriesSample(samples: List[sample.Sample]) -> List[sample.Sample]:
     A list of time series samples, where each sample encodes a list of values
       for the entire run.
   """
-  sample_results = {}
+  # Performance Optimization: Used collections.defaultdict instead of
+  # dict.setdefault(ns_op, []) to avoid unnecessarily instantiating
+  # an empty list on every iteration of the loop.
+  sample_results = collections.defaultdict(list)
   ops_by_timestamp = collections.defaultdict(float)
   for s in samples:
     ns_op = s.metric
     result = AsbenchResult(s)
-    sample_results.setdefault(ns_op, []).append(result)
+    sample_results[ns_op].append(result)
     if _AEROSPIKE_OPS_TIME_SERIES.value:
       ops_by_timestamp[result.timestamp] = result.total_tps
 
