@@ -1,6 +1,7 @@
 """Classes related to k8s events."""
 
 import calendar
+import collections
 import dataclasses
 import datetime
 import logging
@@ -12,7 +13,6 @@ from typing import Any, Callable
 
 from perfkitbenchmarker import errors
 from perfkitbenchmarker import events
-
 
 class KubernetesEventPoller:
   """Wrapper which polls for Kubernetes events."""
@@ -109,9 +109,12 @@ class KubernetesEventPoller:
         ' benchmark may still have passed. Printing these by event reason.',
         len(failure_events_list),
     )
-    failure_events_by_reason: dict[str | None, list[KubernetesEvent]] = {}
+    # Bolt: Using collections.defaultdict instead of dict.setdefault avoids eagerly evaluating the default argument (e.g. []) on every iteration
+    failure_events_by_reason: dict[str | None, list[KubernetesEvent]] = (
+        collections.defaultdict(list)
+    )
     for event in failure_events_list:
-      failure_events_by_reason.setdefault(event.reason, []).append(event)
+      failure_events_by_reason[event.reason].append(event)
     for reason, failure_events in failure_events_by_reason.items():
       logging.info(
           'There were %d failure events for reason %s. Printing the last 20.',

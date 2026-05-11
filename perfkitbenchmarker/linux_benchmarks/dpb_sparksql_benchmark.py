@@ -48,6 +48,7 @@ from collections.abc import MutableMapping
 import functools
 import json
 import logging
+import collections
 import os
 import re
 import time
@@ -472,10 +473,11 @@ def _GetGlobalSamples(
   """Gets samples that summarize the whole benchmark run."""
 
   run_times = {}
-  passing_queries = {}
+  # Bolt: Using collections.defaultdict instead of dict.setdefault avoids eagerly evaluating the default argument (e.g. set()) on every iteration
+  passing_queries = collections.defaultdict(set)
   for s in query_samples:
     query_id = s.metadata['query']
-    passing_queries.setdefault(s.metadata.get('stream', 0), set()).add(query_id)
+    passing_queries[s.metadata.get('stream', 0)].add(query_id)
     run_times[query_id] = s.value
 
   samples = []
