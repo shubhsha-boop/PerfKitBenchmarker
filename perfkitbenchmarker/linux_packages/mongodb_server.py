@@ -167,9 +167,13 @@ def _Setup(vm):
     config_data = {}
 
   # Apply static configurations
-  config_data.setdefault('net', {})['bindIp'] = '::,0.0.0.0'
+  if 'net' not in config_data:
+    config_data['net'] = {}
+  config_data['net']['bindIp'] = '::,0.0.0.0'
   if not FLAGS.mongodb_primary_only:
-    config_data.setdefault('replication', {})[
+    if 'replication' not in config_data:
+      config_data['replication'] = {}
+    config_data['replication'][
         'replSetName'
     ] = f'rs-{FLAGS.run_uri}'
 
@@ -178,7 +182,9 @@ def _Setup(vm):
   def SetNestedValue(d, path, value):
     """Navigates a dictionary path and sets a value, creating keys if needed."""
     for key in path[:-1]:
-      d = d.setdefault(key, {})
+      if key not in d:
+        d[key] = {}
+      d = d[key]
     d[path[-1]] = value
 
   # A list of the flags to be processed.
