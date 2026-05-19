@@ -1,0 +1,3 @@
+## 2025-02-28 - `dict.setdefault` anti-pattern inside high-frequency metadata loops
+**Learning:** In PerfKitBenchmarker's `publisher.py`, `dict.setdefault(k, set())` was used within a nested loop iterating over every metadata key for every sample. Since `set()` is evaluated unconditionally on every loop iteration before being passed to `setdefault`, this caused massive unnecessary memory allocations of empty sets that were immediately garbage-collected if the key already existed.
+**Action:** Replace `dict.setdefault(k, default_factory())` with `collections.defaultdict(default_factory)` in hot loops across the codebase where the default object creation has overhead (like lists, sets, or dictionaries).
