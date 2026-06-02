@@ -173,9 +173,9 @@ class CephDisk(KubernetesDisk):
       # Trying to find device location another way.
       cmd = ['rbd', 'showmapped']
       stdout, _, _ = vm_util.IssueCommand(cmd, raise_on_failure=False)
+      pattern = re.compile('/dev/rbd.*')
       for image_device in stdout.split('\n'):
         if self.name in image_device:
-          pattern = re.compile('/dev/rbd.*')
           output = pattern.findall(image_device)
           rbd_device = output[0].rstrip()
           break
