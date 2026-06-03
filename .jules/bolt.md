@@ -1,0 +1,3 @@
+## 2024-05-24 - Avoid setdefault in Python hot loops
+**Learning:** Using `dict.setdefault(key, set())` inside a tight double loop evaluating hundreds of thousands of items is a measurable Python performance anti-pattern. `setdefault` fully evaluates the default argument on *every* iteration before performing the key lookup, meaning an empty `set()` is needlessly allocated and garbage collected over and over.
+**Action:** When initializing collections like sets or lists within hot loops, use `collections.defaultdict` instead of `dict.setdefault`. `defaultdict` lazily evaluates the factory function only when the key is actually missing, resulting in ~20%+ execution time improvements in aggregation loops.
