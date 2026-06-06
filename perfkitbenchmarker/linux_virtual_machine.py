@@ -90,6 +90,14 @@ _DEFAULT_DISK_FSTAB_OPTIONS = 'defaults'
 _COLON_SEPARATED_RE = re.compile(r'^\s*(?P<key>.*?)\s*:\s*(?P<value>.*?)\s*$')
 _BRACKET_SEPARATED_RE = re.compile(r'^\s*(?P<key>.*\))\s*(?P<value>.*?)\s*$')
 
+# regex for parsing cpu/vulnerabilities
+_MITIGATION_RE_1 = re.compile('^Mitigation: (.*)')
+_MITIGATION_RE_2 = re.compile('^([^:]+): Mitigation: (.*)$')
+_VULNERABLE_RE_1 = re.compile('^Vulnerable: (.*)')
+_VULNERABLE_RE_2 = re.compile('^Vulnerable$')
+_VULNERABLE_RE_3 = re.compile('^([^:]+): Vulnerable$')
+_NOT_AFFECTED_RE = re.compile('^Not affected$')
+
 _SYSFS_CPU_PATH = '/sys/devices/system/cpu'
 
 # TODO(user): update these to use a flag holder as recommended
@@ -374,25 +382,23 @@ class CpuVulnerabilities:
     self.unknowns[file_name] = line
 
   def _AddMitigation(self, file_name, line):
-    match = re.match('^Mitigation: (.*)', line) or re.match(
-        '^([^:]+): Mitigation: (.*)$', line
-    )
+    match = _MITIGATION_RE_1.match(line) or _MITIGATION_RE_2.match(line)
     if match:
       self.mitigations[file_name] = ':'.join(match.groups())
       return True
 
   def _AddVulnerability(self, file_name, line):
     match = (
-        re.match('^Vulnerable: (.*)', line)
-        or re.match('^Vulnerable$', line)
-        or re.match('^([^:]+): Vulnerable$', line)
+        _VULNERABLE_RE_1.match(line)
+        or _VULNERABLE_RE_2.match(line)
+        or _VULNERABLE_RE_3.match(line)
     )
     if match:
       self.vulnerabilities[file_name] = ':'.join(match.groups())
       return True
 
   def _AddNotAffected(self, file_name, line):
-    match = re.match('^Not affected$', line)
+    match = _NOT_AFFECTED_RE.match(line)
     if match:
       self.notaffecteds.add(file_name)
       return True
