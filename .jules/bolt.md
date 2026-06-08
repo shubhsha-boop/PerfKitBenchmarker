@@ -1,0 +1,3 @@
+## 2024-05-15 - Python dict.setdefault Anti-pattern
+**Learning:** Using `dict.setdefault(key, set())` inside a hot loop in Python is a performance anti-pattern because the default argument (the new `set()`) is evaluated and allocated on every iteration, even if the key already exists.
+**Action:** Replace `dict.setdefault` with `collections.defaultdict` in hot loops to lazily initialize default values, saving unnecessary memory allocations and CPU cycles.
