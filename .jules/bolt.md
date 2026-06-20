@@ -1,0 +1,3 @@
+## 2024-06-20 - Python Memory Allocation Anti-Pattern in Hot Loops
+**Learning:** Using `dict.setdefault(key, default_obj)` (e.g., `set()`, `[]`, or `{}`) inside a hot loop in Python is a performance anti-pattern. The default argument is evaluated on every iteration, causing unnecessary memory allocations even when the key already exists. In data processing loops (like metric parsing), this results in millions of wasted object creations.
+**Action:** Always replace `setdefault` with `collections.defaultdict` (e.g., `collections.defaultdict(set)` or `collections.defaultdict(list)`) for lazily initializing default collection values in hot loops. This avoids the per-iteration allocation overhead and improves throughput.
