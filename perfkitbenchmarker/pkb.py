@@ -461,13 +461,13 @@ def _PrintHelpMD(matches=None):
   flags_by_module = FLAGS.flags_by_module_dict()
   modules = sorted(flags_by_module)
   regex = re.compile(matches)
+  # Compile regex patterns outside the loop for performance.
+  module_regex = re.compile(MODULE_REGEX)
+  flags_regex = re.compile(FLAGS_REGEX, re.MULTILINE | re.DOTALL)
+  flagname_regex = re.compile(FLAGNAME_REGEX, re.MULTILINE | re.DOTALL)
+  docstring_regex = re.compile(DOCSTRING_REGEX, re.MULTILINE | re.DOTALL)
   for module_name in modules:
     if regex.search(module_name):
-      # Compile regex patterns.
-      module_regex = re.compile(MODULE_REGEX)
-      flags_regex = re.compile(FLAGS_REGEX, re.MULTILINE | re.DOTALL)
-      flagname_regex = re.compile(FLAGNAME_REGEX, re.MULTILINE | re.DOTALL)
-      docstring_regex = re.compile(DOCSTRING_REGEX, re.MULTILINE | re.DOTALL)
       # Retrieve the helpmatch text to format.
       helptext_raw = FLAGS.module_help(module_name)
 
