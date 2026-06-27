@@ -1,0 +1,3 @@
+## 2024-05-18 - Python dict.setdefault() Performance Anti-Pattern
+**Learning:** Using `dict.setdefault(key, set())` inside a hot loop is a performance anti-pattern because the default argument (`set()`) is instantiated on every single iteration, even if the key already exists. This causes unnecessary memory allocations and CPU overhead.
+**Action:** Replace `dict.setdefault(key, default_obj)` with `collections.defaultdict(type)` (e.g., `defaultdict(set)`) when the default object is mutable and constructed repeatedly in loops. This ensures lazy initialization only when the key is missing, leading to measurably faster execution times.
