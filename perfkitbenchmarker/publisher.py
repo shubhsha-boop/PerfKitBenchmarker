@@ -495,11 +495,14 @@ class PrettyPrintStreamPublisher(SamplePublisher):
       The set of metadata keys for which all samples in 'samples' have the same
       value.
     """
-    unique_values = {}
+    # ⚡ Bolt: Using defaultdict instead of dict.setdefault in a hot loop
+    # prevents evaluating the default argument (set()) on every iteration,
+    # which reduces unnecessary memory allocations and improves performance.
+    unique_values = collections.defaultdict(set)
 
     for sample in samples:
       for k, v in sample['metadata'].items():
-        if len(unique_values.setdefault(k, set())) < 2 and v.__hash__:
+        if len(unique_values[k]) < 2 and v.__hash__:
           unique_values[k].add(v)
 
     # Find keys which are not present in all samples
