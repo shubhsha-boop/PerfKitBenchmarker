@@ -1,0 +1,3 @@
+## $(date +%Y-%m-%d) - Lazy Initialization with defaultdict in Hot Loops
+**Learning:** Found a common Python performance anti-pattern in `_FindConstantMetadataKeys` where `dict.setdefault(k, set())` was used inside a nested hot loop processing benchmark samples. Eager evaluation in Python means an empty `set()` is instantiated on every single iteration of the inner loop even if the key exists, causing unnecessary memory allocation overhead.
+**Action:** Always replace `dict.setdefault` with `collections.defaultdict` when the default factory is a mutable object (like `set`, `list`, or `dict`) and is called repeatedly in a hot path to leverage lazy initialization and avoid redundant memory allocations.
