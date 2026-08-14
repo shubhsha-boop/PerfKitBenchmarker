@@ -1,0 +1,3 @@
+## 2024-08-14 - Replace dict.setdefault with collections.defaultdict in hot loops
+**Learning:** Using `dict.setdefault(key, default_obj)` (like `set()`, `[]`, or `{}`) inside a loop evaluates the default argument on every iteration, causing unnecessary memory allocations. This is a common performance anti-pattern in Python. Replacing it with `collections.defaultdict` lazily initializes the default value, improving performance significantly without sacrificing readability.
+**Action:** When finding `dict.setdefault` in loops or frequently called functions, refactor it to use `collections.defaultdict`. Always measure the performance impact before applying the change.
