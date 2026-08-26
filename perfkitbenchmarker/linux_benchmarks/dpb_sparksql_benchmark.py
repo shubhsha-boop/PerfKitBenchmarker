@@ -45,6 +45,7 @@ https://github.com/GoogleCloudPlatform/spark-bigquery-connector.
 """
 
 from collections.abc import MutableMapping
+import collections
 import functools
 import json
 import logging
@@ -472,10 +473,12 @@ def _GetGlobalSamples(
   """Gets samples that summarize the whole benchmark run."""
 
   run_times = {}
-  passing_queries = {}
+  # ⚡ Bolt: Use defaultdict instead of dict.setdefault in loop to
+  # prevent repeated set() instantiation overhead
+  passing_queries = collections.defaultdict(set)
   for s in query_samples:
     query_id = s.metadata['query']
-    passing_queries.setdefault(s.metadata.get('stream', 0), set()).add(query_id)
+    passing_queries[s.metadata.get('stream', 0)].add(query_id)
     run_times[query_id] = s.value
 
   samples = []
