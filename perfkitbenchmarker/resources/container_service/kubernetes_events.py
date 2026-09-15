@@ -7,6 +7,7 @@ import logging
 import multiprocessing
 from multiprocessing import synchronize
 import re
+import collections
 import time
 from typing import Any, Callable
 
@@ -109,9 +110,13 @@ class KubernetesEventPoller:
         ' benchmark may still have passed. Printing these by event reason.',
         len(failure_events_list),
     )
-    failure_events_by_reason: dict[str | None, list[KubernetesEvent]] = {}
+    # ⚡ Bolt: Replace dict.setdefault with collections.defaultdict to
+    # avoid unnecessary list() allocations on every iteration.
+    failure_events_by_reason: dict[
+        str | None, list[KubernetesEvent]
+    ] = collections.defaultdict(list)
     for event in failure_events_list:
-      failure_events_by_reason.setdefault(event.reason, []).append(event)
+      failure_events_by_reason[event.reason].append(event)
     for reason, failure_events in failure_events_by_reason.items():
       logging.info(
           'There were %d failure events for reason %s. Printing the last 20.',
