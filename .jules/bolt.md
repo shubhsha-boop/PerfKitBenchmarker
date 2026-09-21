@@ -1,0 +1,3 @@
+## 2024-05-23 - List comprehensions and f-strings vs loop append in Hot Serialization Paths
+**Learning:** In hot serialization paths (like sample metadata processing), replacing traditional loops utilizing `.append()` and `%` string formatting with list comprehensions and f-strings yields measurable performance speedups. Generating lists from comprehensions is faster than appending one-by-one in a loop.
+**Action:** When working on serialization or generating lists of strings from dictionaries/iterables, prefer list comprehensions over loops that use `.append()`, especially when processing large amounts of data. Use f-strings instead of `%` formatting for cleaner and slightly faster string interpolation.
