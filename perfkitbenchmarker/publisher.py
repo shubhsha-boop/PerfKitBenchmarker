@@ -230,10 +230,9 @@ def GetLabelsFromDict(metadata: dict[Any, Any]) -> str:
   Returns:
     A string of labels, sorted by key, in the format that Perfkit uses.
   """
-  labels = []
-  for k, v in sorted(metadata.items()):
-    labels.append('|%s:%s|' % (k, v))
-  return ','.join(labels)
+  # ⚡ Bolt: Replaced loop with list comprehension and f-string for faster
+  # serialization
+  return ','.join([f'|{k}:{v}|' for k, v in sorted(metadata.items())])
 
 
 def LabelsToDict(labels_str: str) -> dict[str, str]:
@@ -964,9 +963,9 @@ class InfluxDBPublisher(SamplePublisher):
     self.influx_db_name = influx_db_name
 
   def PublishSamples(self, samples):
-    formated_samples = []
-    for sample in samples:
-      formated_samples.append(self._ConstructSample(sample))
+    # ⚡ Bolt: Replaced loop and append with list comprehension for faster
+    # sample formatting
+    formated_samples = [self._ConstructSample(sample) for sample in samples]
     self._Publish(formated_samples)
 
   def _Publish(self, formated_samples):
@@ -1157,8 +1156,12 @@ class SampleCollector:
               project_id=FLAGS.bq_project,
               bq_path=FLAGS.bq_path,
               service_account=FLAGS.service_account,
-              service_account_private_key_file=FLAGS.service_account_private_key,
-              application_default_credential_file=FLAGS.application_default_credential_file,
+              service_account_private_key_file=(
+                  FLAGS.service_account_private_key
+              ),
+              application_default_credential_file=(
+                  FLAGS.application_default_credential_file
+              ),
           )
       )
 
@@ -1227,10 +1230,12 @@ class SampleCollector:
     if not self.samples:
       logging.warning('No samples to publish.')
       return
-    samples_for_console = []
-    for s in self.samples:
-      if not s.get(pkb_sample.DISABLE_CONSOLE_LOG, False):
-        samples_for_console.append(s)
+    # ⚡ Bolt: Use list comprehension for filtering console samples instead of
+    # loop with append
+    samples_for_console = [
+        s for s in self.samples
+        if not s.get(pkb_sample.DISABLE_CONSOLE_LOG, False)
+    ]
     for publisher in self.publishers:
       publisher.PublishSamples(
           self.samples
