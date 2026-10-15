@@ -495,11 +495,13 @@ class PrettyPrintStreamPublisher(SamplePublisher):
       The set of metadata keys for which all samples in 'samples' have the same
       value.
     """
-    unique_values = {}
+    # ⚡ Bolt: Used defaultdict to avoid set allocation overhead on each
+    # iteration.
+    unique_values = collections.defaultdict(set)
 
     for sample in samples:
       for k, v in sample['metadata'].items():
-        if len(unique_values.setdefault(k, set())) < 2 and v.__hash__:
+        if len(unique_values[k]) < 2 and v.__hash__:
           unique_values[k].add(v)
 
     # Find keys which are not present in all samples
@@ -513,7 +515,9 @@ class PrettyPrintStreamPublisher(SamplePublisher):
 
   def _FormatMetadata(self, metadata):
     """Format 'metadata' as space-delimited key="value" pairs."""
-    return ' '.join('{}="{}"'.format(k, v) for k, v in sorted(metadata.items()))
+    # ⚡ Bolt: Used list comprehension and f-strings for faster string
+    # generation.
+    return ' '.join([f'{k}="{v}"' for k, v in sorted(metadata.items())])
 
   def PublishSamples(self, samples):
     # result will store the formatted text, then be emitted to self.stream and
