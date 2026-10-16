@@ -1013,15 +1013,15 @@ class InfluxDBPublisher(SamplePublisher):
     return sample_constructed_body
 
   def _FormatToKeyValue(self, sample):
-    key_value_pairs = []
-    for k, v in sample.items():
-      if v == '':
-        v = '\\"\\"'
-      v = str(v)
-      v = v.replace(',', r'\,')
-      v = v.replace(' ', r'\ ')
-      key_value_pairs.append('%s=%s' % (k, v))
-    return key_value_pairs
+    # ⚡ Bolt: Using list comprehension and f-strings instead of .append() and %
+    # formatting in a loop yields faster string formatting and lower overhead.
+    return [
+        f"{k}=" + (
+            '\\"\\"' if v == ''
+            else str(v).replace(',', r'\,').replace(' ', r'\ ')
+        )
+        for k, v in sample.items()
+    ]
 
   def _CreateDB(self):
     """Creates a database.
