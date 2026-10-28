@@ -195,9 +195,9 @@ def _DictToString(dictionary):
   Returns:
     a string representing the dictionary
   """
+  # ⚡ Bolt: Using list comprehension and f-strings in join() executes faster.
   dict_str = ' '.join(
-      ' {key}={value}'.format(key=key, value=value)
-      for key, value in sorted(dictionary.items())
+      [f' {key}={value}' for key, value in sorted(dictionary.items())]
   )
   return dict_str
 
