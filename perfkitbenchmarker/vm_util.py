@@ -921,8 +921,9 @@ def DictionaryToEnvString(dictionary, joiner=' '):
   Returns:
     a string representing the dictionary
   """
+  # ⚡ Bolt: Using list comprehension in join() executes faster.
   return joiner.join(
-      f'{key}={value}' for key, value in sorted(dictionary.items())
+      [f'{key}={value}' for key, value in sorted(dictionary.items())]
   )
 
 
