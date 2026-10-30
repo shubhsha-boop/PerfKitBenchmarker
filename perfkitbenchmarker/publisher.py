@@ -230,10 +230,9 @@ def GetLabelsFromDict(metadata: dict[Any, Any]) -> str:
   Returns:
     A string of labels, sorted by key, in the format that Perfkit uses.
   """
-  labels = []
-  for k, v in sorted(metadata.items()):
-    labels.append('|%s:%s|' % (k, v))
-  return ','.join(labels)
+  # ⚡ Bolt: Using list comprehension and f-strings is faster
+  # than loop/append and % formatting
+  return ','.join([f'|{k}:{v}|' for k, v in sorted(metadata.items())])
 
 
 def LabelsToDict(labels_str: str) -> dict[str, str]:
@@ -513,7 +512,9 @@ class PrettyPrintStreamPublisher(SamplePublisher):
 
   def _FormatMetadata(self, metadata):
     """Format 'metadata' as space-delimited key="value" pairs."""
-    return ' '.join('{}="{}"'.format(k, v) for k, v in sorted(metadata.items()))
+    # ⚡ Bolt: Using list comprehension and f-strings executes faster because
+    # CPython pre-calculates the size for list join and f-strings are faster
+    return ' '.join([f'{k}="{v}"' for k, v in sorted(metadata.items())])
 
   def PublishSamples(self, samples):
     # result will store the formatted text, then be emitted to self.stream and
