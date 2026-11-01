@@ -192,8 +192,11 @@ def MakeHistogram(
 
 
 def _ConvertHistogramToString(histogram: _Histogram[float, int]) -> str:
+  # ⚡ Bolt: Using list comprehension instead of generator in join()
+  # is faster since CPython can pre-calculate the required string
+  # allocation size for lists.
   histogram_label_values = ','.join(
-      f'"{key}": {value}' for (key, value) in histogram.items()
+      [f'"{key}": {value}' for key, value in histogram.items()]
   )
   histogram_labels = '{%s}' % histogram_label_values
   return histogram_labels
