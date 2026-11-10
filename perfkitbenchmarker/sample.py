@@ -192,8 +192,9 @@ def MakeHistogram(
 
 
 def _ConvertHistogramToString(histogram: _Histogram[float, int]) -> str:
+  # ⚡ Bolt: using a list comp here is faster than a generator expression
   histogram_label_values = ','.join(
-      f'"{key}": {value}' for (key, value) in histogram.items()
+      [f'"{key}": {value}' for key, value in histogram.items()]
   )
   histogram_labels = '{%s}' % histogram_label_values
   return histogram_labels
